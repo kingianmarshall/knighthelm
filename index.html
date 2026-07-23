@@ -11,16 +11,24 @@ position:absolute;
 <script src="base64.js" defer></script>
 </head>
 <body>
-<h1 id="title">Knight Helm Alpha v0.08</h1>
+<h1 id="title">Knight Helm Alpha v0.09</h1>
 <div>
-
+<img src="redpotion.png" id="redpotion" hidden/>
+<img src="greenpotion.png" id="greenpotion" hidden/>
+<img src="bluepotion.png" id="bluepotion" hidden/>
+<img src="purplepotion.png" id="purplepotion" hidden/>
 <canvas id="canvas" oncontextmenu="return false;"></canvas>
 </div>
 
 
 <script>
 let running=false;
-
+let itemSprite=[
+	document.getElementById("redpotion")
+	,document.getElementById("greenpotion")
+	,document.getElementById("bluepotion")
+	,document.getElementById("purplepotion")
+];
 let zombies=[];
 let rain=document.createElement("canvas");
 rain.width=50;
@@ -57,6 +65,10 @@ let frmcounter=0;
 let px=25;
 let py=18;
 let pa=Math.PI;
+let hp=100;
+let magic=100;
+let stamina=100;
+let dead=false;
 let h=50;
 let wP=false;
 let aP=false;
@@ -155,8 +167,43 @@ for(let j=0;j<map[0].length;j++){
 	}else{
 		arr.push(0);
 	}
-}	
-walls.push(arr);
+}
+walls.push(arr);	
+}
+		 let items=[];
+for(let i=0;i<map.length;i++){
+let arr=[];
+for(let j=0;j<map[0].length;j++){
+	
+		arr.push([]);
+	
+}
+items.push(arr);
+}
+function generateItem(){
+	let rand=Math.floor(Math.random()*1000);
+	if(rand<100)return 1;
+	else if(rand<200)return 2;
+	else if(rand<300)return 3;
+	else if(rand<350)return 4;
+	else return 0;
+}
+function pickup(){
+if(items[Math.floor(py)][Math.floor(px)].length!=0){
+	for(let item=0;item<items[Math.floor(py)][Math.floor(px)].length;item++){
+		if(items[Math.floor(py)][Math.floor(px)][item]==1)hp=100;
+		else if(items[Math.floor(py)][Math.floor(px)][item]==2)magic=100;
+		else if(items[Math.floor(py)][Math.floor(px)][item]==3)stamina=100;
+		else if(items[Math.floor(py)][Math.floor(px)][item]==4){
+		hp=100;
+		magic=100;
+		stamina=100;
+		}
+		
+	}
+
+}
+items[Math.floor(py)][Math.floor(px)]=new Array();
 }
 function isWall(x,y){
 	
@@ -221,8 +268,17 @@ function tick(){
 	now=performance.now();
 	elapsedTime=(now-past)/1000;
 	past=now;
-	if(shift)speed=10;
-	else speed=5;
+	if(shift && stamina>0){
+	
+	speed=10;
+	stamina-=20*elapsedTime;
+	if(stamina<0)stamina=0;
+	}else if(!shift){
+		speed=5;
+		stamina+=15*elapsedTime;
+		if(stamina>=100)stamina=100;
+	}
+	
 	if(space)swing+=5*elapsedTime;
 	else swing=-Math.PI/8;
 	if(swing>Math.PI/8)swing=Math.PI/8;
@@ -235,6 +291,7 @@ function tick(){
 			px+=Math.sin(pa)*speed*elapsedTime;
 			py+=Math.cos(pa)*speed*elapsedTime;
 		}
+		pickup();
 	}
 	if(sP){
 		px+=Math.sin(pa)*speed*elapsedTime;
@@ -243,6 +300,7 @@ function tick(){
 			px-=Math.sin(pa)*speed*elapsedTime;
 			py-=Math.cos(pa)*speed*elapsedTime;
 		}
+		pickup();
 	}
 	if(dP)pa-=elapsedTime;
 	if(aP)pa+=elapsedTime;
@@ -302,6 +360,10 @@ function tick(){
 		}
 		}
 		
+		}else if(distance<=1){
+			hp-=20*elapsedTime;
+			if(hp<0)hp=0;
+			if(hp==0)dead=true;
 		}
 		if(Math.floor(lastX)!=Math.floor(zombies[z].x) || Math.floor(lastY)!=Math.floor(zombies[z].y)){
 		walls[Math.floor(lastY)][Math.floor(lastX)]=0;
@@ -359,14 +421,14 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 	
 	if(map[i][j]==0 || map[i][j]==1){
 	b.drawImage(wood,j*h-px*h,i*h-py*h);
-	if(map[i-1][j]==2)b.drawImage(grass,0,0,50,25,j*h-px*h,i*h-py*h,50,25);
-	if(map[i+1][j]==2)b.drawImage(grass,0,25,50,25,j*h-px*h,i*h-py*h+h/2,50,25);
-	if(map[i][j-1]==2)b.drawImage(grass,0,0,25,50,j*h-px*h,i*h-py*h,25,50);
-	if(map[i][j+1]==2)b.drawImage(grass,25,0,25,50,j*h-px*h+h/2,i*h-py*h,25,50);
-	if(map[i-1][j-1]==2)b.drawImage(grass,0,0,25,25,j*h-px*h,i*h-py*h,25,25);
-	if(map[i-1][j+1]==2)b.drawImage(grass,25,0,25,25,j*h-px*h+h/2,i*h-py*h,25,25);
-	if(map[i+1][j+1]==2)b.drawImage(grass,25,25,25,25,j*h-px*h+h/2,i*h-py*h+h/2,25,25);
-	if(map[i+1][j-1]==2)b.drawImage(grass,0,25,25,25,j*h-px*h,i*h-py*h+h/2,25,25);
+	if(map[i-1][j]==2 || map[i-1][j]==11)b.drawImage(grass,0,0,50,25,j*h-px*h,i*h-py*h,50,25);
+	if(map[i+1][j]==2 || map[i+1][j]==11)b.drawImage(grass,0,25,50,25,j*h-px*h,i*h-py*h+h/2,50,25);
+	if(map[i][j-1]==2 || map[i][j-1]==11)b.drawImage(grass,0,0,25,50,j*h-px*h,i*h-py*h,25,50);
+	if(map[i][j+1]==2 || map[i][j+1]==11)b.drawImage(grass,25,0,25,50,j*h-px*h+h/2,i*h-py*h,25,50);
+	if(map[i-1][j-1]==2 || map[i-1][j-1]==11)b.drawImage(grass,0,0,25,25,j*h-px*h,i*h-py*h,25,25);
+	if(map[i-1][j+1]==2 || map[i-1][j+1]==11)b.drawImage(grass,25,0,25,25,j*h-px*h+h/2,i*h-py*h,25,25);
+	if(map[i+1][j+1]==2 || map[i+1][j+1]==11)b.drawImage(grass,25,25,25,25,j*h-px*h+h/2,i*h-py*h+h/2,25,25);
+	if(map[i+1][j-1]==2 || map[i+1][j-1]==11)b.drawImage(grass,0,25,25,25,j*h-px*h,i*h-py*h+h/2,25,25);
 	
 	
 	}else if(map[i][j]==2){
@@ -660,6 +722,16 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 	b.rotate(-pa);
 	b.drawImage(tuft,-25,-60,50,75);
 	b.restore();
+	}
+	if(items[i][j].length>0){
+		for(let k=0;k<items[i][j].length;k++){
+		if(items[i][j][k]==0)continue;
+		b.save();
+			b.translate((j+0.5)*h-px*h,(i+0.5)*h-py*h);
+		b.rotate(-pa);
+		b.drawImage(itemSprite[items[i][j][k]-1],-12.5,-50,25,50);
+		b.restore();
+		}
 	}
 	for(let z=0;z<zombies.length;z++){
 		let dist=Math.sqrt((zombies[z].x-px)*(zombies[z].x-px)+(zombies[z].y-py)*(zombies[z].y-py));
@@ -1290,7 +1362,11 @@ if(j==Math.floor(px) && i==Math.floor(py)){
 	
 	zombies[z].moan.pause();
 	zombies[z].moan.currentTime=0;
+	if(items[Math.floor(zombies[z].y)][Math.floor(zombies[z].x)].length<7){
+		items[Math.floor(zombies[z].y)][Math.floor(zombies[z].x)].push(generateItem());
+	}
 	zombies.splice(z,1);
+	
 	}
 	
 	}
@@ -1408,14 +1484,36 @@ c.save();
 
 c.drawImage(overlay,0,0);
 
+
+c.fillStyle="red";
+c.fillRect(0,0,10,200);
+c.fillStyle="white";
+c.fillRect(0,0,10,200-hp*2);
+
+c.fillStyle="green";
+c.fillRect(10,0,10,200);
+c.fillStyle="white";
+c.fillRect(10,0,10,200-magic*2);
+
+c.fillStyle="blue";
+c.fillRect(20,0,10,200);
+c.fillStyle="white";
+c.fillRect(20,0,10,200-stamina*2);
+
 }
 function run(frame){
-	if(running){
+	if(running && !dead){
 	 tick();
 	 
 	 draw(frame);
-	 }else{
+	 }else if(!running){
 		c.drawImage(startscreen,0,0);
+	 }
+	 if(dead){
+		c.fillStyle="black";
+		c.fillRect(0,0,500,500);
+		c.fillStyle="white";
+		c.fillText("YOU DIED...",250,250);
 	 }
      requestAnimationFrame(run);
 }
