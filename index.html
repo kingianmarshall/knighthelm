@@ -318,8 +318,24 @@ function tick(){
 		}
 		pickup();
 	}
-	if(dP)pa-=elapsedTime;
-	if(aP)pa+=elapsedTime;
+	if(aP){
+		px-=Math.cos(pa)*(speed/2)*elapsedTime;
+		py+=Math.sin(pa)*(speed/2)*elapsedTime;
+		if(walls[Math.floor(py)][Math.floor(px)]>0){
+			px+=Math.cos(pa)*(speed/2)*elapsedTime;
+			py-=Math.sin(pa)*(speed/2)*elapsedTime;
+		}
+		pickup();
+	}
+	if(dP){
+		px+=Math.cos(pa)*(speed/2)*elapsedTime;
+		py-=Math.sin(pa)*(speed/2)*elapsedTime;
+		if(walls[Math.floor(py)][Math.floor(px)]>0){
+			px-=Math.cos(pa)*(speed/2)*elapsedTime;
+			py+=Math.sin(pa)*(speed/2)*elapsedTime;
+		}
+		pickup();
+	}
 	if(pa>Math.PI*2)pa-=Math.PI*2;
 	if(pa<0)pa+=Math.PI*2;
 	
