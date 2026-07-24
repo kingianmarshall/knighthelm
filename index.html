@@ -11,12 +11,15 @@ position:absolute;
 <script src="base64.js" defer></script>
 </head>
 <body>
-<h1 id="title">Knight Helm Alpha v0.09</h1>
+<h1 id="title">Knight Helm Alpha v0.10</h1>
 <div>
 <img src="redpotion.png" id="redpotion" hidden/>
 <img src="greenpotion.png" id="greenpotion" hidden/>
 <img src="bluepotion.png" id="bluepotion" hidden/>
 <img src="purplepotion.png" id="purplepotion" hidden/>
+<img src="coins.png" id="coins" hidden/>
+<img src="housewall.png" id="housewall" hidden/>
+<img src="housewallflip.png" id="housewallflip" hidden/>
 <canvas id="canvas" oncontextmenu="return false;"></canvas>
 </div>
 
@@ -28,7 +31,10 @@ let itemSprite=[
 	,document.getElementById("greenpotion")
 	,document.getElementById("bluepotion")
 	,document.getElementById("purplepotion")
+	,document.getElementById("coins")
 ];
+let housewall=document.getElementById("housewall");
+let housewallflip=document.getElementById("housewallflip");
 let zombies=[];
 let rain=document.createElement("canvas");
 rain.width=50;
@@ -47,7 +53,7 @@ let canvas=document.getElementById("canvas");
 canvas.width=500;
 canvas.height=500;
 canvas.style.background="black";
-canvas.style.cursor="none";
+//canvas.style.cursor="none";
 canvas.style.position="absolute";
 canvas.style.left=window.innerWidth/2-(canvas.width/2)+"px";
 canvas.style.top=window.innerHeight/2-(canvas.height/2)+"px";
@@ -68,12 +74,18 @@ let pa=Math.PI;
 let hp=100;
 let magic=100;
 let stamina=100;
+let coincount=0;
 let dead=false;
 let h=50;
 let wP=false;
 let aP=false;
 let sP=false;
 let dP=false;
+let middle=false;
+let mouseX=0;
+let mouseY=0;
+let lastmouseX=0;
+let lastmouseY=0;
 let speed=5;
 let shift=false;
 let space=false;
@@ -105,28 +117,28 @@ let map=[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,9,10,10,9,9,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,9,10,10,9,9,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,10,10,10,10,10,9,9,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,0,0,0,0,0,0,0,0,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,9,9,2,2,2,2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,0,0,0,0,0,0,0,0,3,2,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,0,0,0,0,0,0,0,0,3,2,2,2,2,2,2,2,9,9,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,0,0,0,0,0,0,0,0,3,2,2,2,2,2,2,2,10,10,10,10,10,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,3,3,3,3,3,0,3,3,3,3,2,2,2,2,2,2,2,9,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,9,9,9,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,6,2,6,2,2,2,2,2,2,2,2,2,2,7,2,9,9,9,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,6,2,6,6,6,6,6,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,6,2,2,2,2,2,6,2,2,2,2,2,2,2,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,6,6,6,6,6,2,6,2,2,2,7,2,2,3,1,8,0,0,0,8,1,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,6,2,2,2,2,3,6,2,7,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,6,2,6,6,6,2,6,2,2,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,3,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,6,2,2,2,6,2,6,3,2,2,7,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,6,2,2,2,6,2,6,2,2,2,3,2,2,2,1,0,0,0,0,0,1,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,6,6,6,6,6,2,6,2,2,2,7,2,2,2,1,8,0,0,0,8,1,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,6,2,2,2,2,2,6,2,7,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,6,2,6,6,6,2,6,2,2,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,6,2,2,2,6,2,6,2,2,2,7,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,6,2,2,2,6,2,6,2,2,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,6,6,6,6,6,2,6,2,2,2,2,2,2,2,1,1,1,0,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,3,2,6,2,6,3,2,2,2,2,2,2,2,2,6,5,6,2,2,2,2,2,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,6,2,6,2,2,2,2,2,2,2,2,2,6,5,6,2,2,2,2,2,2,2,2,7,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,2,2,2,2],
 		 [2,2,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,2,2,2,2],
 		 [2,2,2,2,2,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,2,2,2,2],
@@ -136,13 +148,13 @@ let map=[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 		 [2,2,2,2,2,2,2,2,7,2,2,2,7,2,2,2,2,2,2,1,1,1,1,1,1,1,0,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,3,2,2,3,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,1,0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
 		 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
@@ -150,10 +162,12 @@ let map=[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 for(let i=0;i<map.length;i++){
 for(let j=0;j<map[0].length;j++){
 	if(map[i][j]==2){
-		let rand=Math.floor(Math.random()*5);
+		let rand=Math.floor(Math.random()*100);
 		
-		if(rand==0){
+		if(rand<10){
 		map[i][j]=11;
+		}else if(rand==20){
+		map[i][j]=12;
 		}
 	}
 }		
@@ -186,6 +200,7 @@ function generateItem(){
 	else if(rand<200)return 2;
 	else if(rand<300)return 3;
 	else if(rand<350)return 4;
+	else if(rand<500)return 5;
 	else return 0;
 }
 function pickup(){
@@ -198,7 +213,7 @@ if(items[Math.floor(py)][Math.floor(px)].length!=0){
 		hp=100;
 		magic=100;
 		stamina=100;
-		}
+		}else if(items[Math.floor(py)][Math.floor(px)][item]==5)coincount+=20;
 		
 	}
 
@@ -212,6 +227,7 @@ function isWall(x,y){
 	x=Math.floor(x);
 	y=Math.floor(y);
 	if(map[y][x]==1)return true;
+	if(map[y][x]==3)return true;
 	
 	if(map[y][x]==6)return true;
 	if(map[y][x]==7)return true;
@@ -248,7 +264,7 @@ sc.drawImage(overlay,0,0,1000,500);
 oc.drawImage(stretch,-250,0,1000,500);		 
 for(let i=0;i<map.length;i++){
 for(let j=0;j<map[0].length;j++){
-	if(map[i][j]==3){
+	if(map[i][j]==12){
 	map[i][j]=2;
 	const zomb=new Object();
 	zomb.x=j+0.5;
@@ -430,7 +446,11 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 	if(map[i+1][j+1]==2 || map[i+1][j+1]==11)b.drawImage(grass,25,25,25,25,j*h-px*h+h/2,i*h-py*h+h/2,25,25);
 	if(map[i+1][j-1]==2 || map[i+1][j-1]==11)b.drawImage(grass,0,25,25,25,j*h-px*h,i*h-py*h+h/2,25,25);
 	
+	if(map[i-1][j]==3 && map[i+1][j]==3)b.drawImage(grass,0,0,50,50,j*h-px*h,i*h-py*h,50,50);
+	if(map[i][j-1]==3 && map[i][j+1]==3){
+	b.drawImage(grass,0,0,50,50,j*h-px*h,i*h-py*h,50,50);
 	
+	}
 	}else if(map[i][j]==2){
 	b.drawImage(grass,j*h-px*h,i*h-py*h);
 	}else if(map[i][j]==4){
@@ -1091,6 +1111,7 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 			b.restore();
 	
 	}
+	
 	if(i>0 && map[i-1][j]==1){
 		b.save();
 		b.translate(j*h-px*h+h/2-Math.sin(pa)*h*2,i*h-py*h+h/2-Math.cos(pa)*h*2);
@@ -1111,6 +1132,7 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 		b.restore();
 	
 	}
+	
 	if(j<map[0].length-1 && map[i][j+1]==1 ){
 		b.save();
 		b.translate(j*h-px*h+h/2-Math.sin(pa)*h*2,i*h-py*h+h/2-Math.cos(pa)*h*2);
@@ -1124,6 +1146,7 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 		
 	
 	}
+	
 	if(i<map.length-1 && map[i+1][j]==1){
 		b.save();
 		b.translate(j*h-px*h+h/2-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
@@ -1210,6 +1233,7 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 	
 	
 	
+	
 	}else if(pa<Math.PI*1.5){
 	
 	
@@ -1275,6 +1299,8 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 		
 	}
 	
+	
+	
 	}else if(pa<Math.PI*2){
 	if(j<map[0].length-1 && map[i][j+1]==1 ){
 		b.save();
@@ -1339,11 +1365,294 @@ for(let j=sx;j!=ex;(sx<ex?j++:j--)){
 	
 	
 	
+	
+	
+	
+	
 	}
 	 
 	 
 	 
 	
+	}
+	
+	
+	
+	
+	
+	if(map[i][j]==3){
+	
+		b.drawImage(grass,0,0,50,50,j*h-px*h,i*h-py*h,50,50);
+		
+		if(pa<Math.PI/2){
+		if(map[i-1][j]==0 && map[i-2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		
+		if(map[i][j-1]==0 && map[i][j-2]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i+1][j]==0 && map[i+2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i][j+1]==0 && map[i][j+2]!=3){
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+			
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+			
+		
+		b.restore();
+		}
+		}else if(pa<Math.PI){
+		
+		if(map[i+1][j]==0 && map[i+2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i][j-1]==0 && map[i][j-2]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i-1][j]==0 && map[i-2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i][j+1]==0 && map[i][j+2]!=3){
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewall,0,0,50,50,0,0,50,Math.sin(pa)*100);
+			
+		
+		b.restore();
+		}
+		
+		}else if(pa<Math.PI*1.5){
+		if(map[i][j-1]==0 && map[i][j-2]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i-1][j]==0 && map[i-2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i+1][j]==0 && map[i+2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		
+		if(map[i][j+1]==0 && map[i][j+2]!=3){
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+			
+		
+		b.restore();
+		}
+		
+		}else if(pa<Math.PI*2){
+		
+		if(map[i-1][j]==0 && map[i-2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i][j+1]==0 && map[i][j+2]!=3){
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h+h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+			
+		
+		b.restore();
+		}
+		if(map[i+1][j]==0 && map[i+2][j]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.transform(1,0,Math.tan(pa),1,0,0);
+		b.drawImage(housewall,0,0,50,50,0,0,50,Math.cos(pa)*100);
+		
+		b.restore();
+		}
+		if(map[i][j-1]==0 && map[i][j-2]!=3){
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*2,i*h-py*h+h-Math.cos(pa)*h*2);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		b.save();
+		b.translate(j*h-px*h-Math.sin(pa)*h*4,i*h-py*h+h-Math.cos(pa)*h*4);
+		b.rotate(-Math.PI/2);
+		b.transform(1,0,Math.tan(pa-Math.PI/2),1,0,0);
+			
+			b.drawImage(housewallflip,0,0,50,50,0,0,50,Math.sin(pa)*100);
+		
+		b.restore();
+		}
+		
+		
+		}
+		
 	}
 	
 if(j==Math.floor(px) && i==Math.floor(py)){
@@ -1586,8 +1895,17 @@ document.addEventListener("keyup",(e)=>{
 	if(key=='d' || key=='D')dP=false;
 	
 });
+let startdir=0;
 document.addEventListener("mousedown",(e)=>{
+		mouseX=e.clientX;
+		mouseY=e.clientY;
+		
 	if(e.button==0)space=true;
+	if(e.button==1){
+	middle=true;
+	startdir=-pa+Math.atan2(mouseY-window.innerHeight/2,mouseX-window.innerWidth/2)+Math.PI;
+	
+	}
 	running=true;
 	theme.play();
 	rainsound.volume=0.3;
@@ -1595,12 +1913,26 @@ document.addEventListener("mousedown",(e)=>{
 
 });
 document.addEventListener("mouseup",(e)=>{
-
+	mouseX=e.clientX;
+		mouseY=e.clientY;
+	
 	if(e.button==0)space=false;
+	if(e.button==1){
+	
+	middle=false;
+	}
 
 });
 document.addEventListener("mousemove",(e)=>{
-
+		mouseX=e.clientX;
+		mouseY=e.clientY;
+		
+		if(middle){
+		let currentdir=Math.atan2(mouseY-window.innerHeight/2,mouseX-window.innerWidth/2)+Math.PI;
+		pa=currentdir-startdir;
+		if(pa<0)pa+=Math.PI*2;
+		if(pa>Math.PI*2)pa-=Math.PI*2;
+		}
 });
 </script>
 </body>
